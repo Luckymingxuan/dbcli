@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { connect, disconnect, showConnections as statusConnections, deleteConnection } from './commands/connect.js';
 import { listTables, describeTable } from './commands/tables.js';
+import { executeQuery } from './commands/query.js';
 
 const program = new Command();
 
@@ -53,6 +54,14 @@ program
   .argument('<table>', 'Table name to describe')
   .action(async (table: string) => {
     await describeTable(table);
+  });
+
+program
+  .command('query')
+  .description('Execute a SQL query')
+  .argument('<sql>', 'SQL query to execute (use quotes for complex queries)')
+  .action(async (sql: string) => {
+    await executeQuery(sql);
   });
 
 program.parse();
