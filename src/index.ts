@@ -14,7 +14,7 @@ program
 program
   .command('connect')
   .description('Connect to a database')
-  .argument('<name|url>', 'Connection name (for existing) or full URL (for new connection)')
+  .argument('<db-name|url>', 'Connection name (for existing) or full URL (for new connection)')
   .action(async (nameUrl: string) => {
     await connect(nameUrl);
   });
@@ -29,7 +29,7 @@ program
 program
   .command('logout')
   .description('Logout from a connection (keeps URL, only clears credentials)')
-  .argument('<name>', 'Connection name to logout')
+  .argument('<db-name>', 'Connection name to logout')
   .action(async (name: string) => {
     await logout(name);
   });
@@ -37,7 +37,7 @@ program
 program
   .command('delete')
   .description('Delete a saved connection completely')
-  .argument('<name>', 'Connection name to delete')
+  .argument('<db-name>', 'Connection name to delete')
   .action(async (name: string) => {
     await deleteConnection(name);
   });
