@@ -105,7 +105,8 @@ export async function showConnections(): Promise<void> {
     database: info.database,
     host: info.host,
     port: info.port,
-    status: info.connected ? 'connected' : 'disconnected',
+    connected: info.connected ? 'connected' : 'disconnected',
+    logged: info.username && info.password ? 'logged in' : 'logged out',
     lastConnected: info.lastConnected,
   }));
   console.table(rows);
