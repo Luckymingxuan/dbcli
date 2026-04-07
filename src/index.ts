@@ -7,7 +7,7 @@ import { executeQuery } from './commands/query.js';
 const program = new Command();
 
 program
-  .name('dbcli')
+  .name('opendbcli')
   .description('Database CLI tool')
   .version('0.1.0')
   .addHelpCommand(false);

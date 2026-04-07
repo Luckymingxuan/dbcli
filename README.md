@@ -61,7 +61,7 @@ opendbcli query "SELECT * FROM notes"
 The connections are stored in:
 
 ```bash
-~/.dbcli/connections.json
+~/.opendbcli/connections.json
 ```
 
 Example configuration:

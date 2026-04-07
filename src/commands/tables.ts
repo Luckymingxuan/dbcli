@@ -21,7 +21,7 @@ export async function listTables(): Promise<void> {
 
   if (!result) {
     console.log(chalk.red('No active database connection.'));
-    console.log(chalk.cyan('Please use "dbcli connect <url>" to connect to a database first.'));
+    console.log(chalk.cyan('Please use "opendbcli connect <url>" to connect to a database first.'));
     process.exit(1);
   }
 
@@ -46,7 +46,7 @@ export async function describeTable(tableName: string): Promise<void> {
 
   if (!result) {
     console.log(chalk.red('No active database connection.'));
-    console.log(chalk.cyan('Please use "dbcli connect <url>" to connect to a database first.'));
+    console.log(chalk.cyan('Please use "opendbcli connect <url>" to connect to a database first.'));
     process.exit(1);
   }
 

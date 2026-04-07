@@ -16,7 +16,7 @@ interface ConnectionInfo {
   connected: boolean;
 }
 
-const CONFIG_DIR = path.join(os.homedir(), '.dbcli');
+const CONFIG_DIR = path.join(os.homedir(), '.opendbcli');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'connections.json');
 
 let connections: Map<string, ConnectionInfo> = new Map();
@@ -88,7 +88,7 @@ export async function showConnections(): Promise<void> {
 
   if (connections.size === 0) {
     console.log(chalk.yellow('No saved connections.'));
-    console.log(chalk.cyan('Use "dbcli connect <url>" to add a new connection.'));
+    console.log(chalk.cyan('Use "opendbcli connect <url>" to add a new connection.'));
     return;
   }
 
@@ -148,7 +148,7 @@ export async function connect(nameUrl: string, options?: { username?: string; pa
     existing = connections.get(database) || null;
     if (!existing) {
       console.error(chalk.red(`Connection "${database}" not found.`));
-      console.log(chalk.cyan('Use "dbcli connect <url>" to add a new connection.'));
+      console.log(chalk.cyan('Use "opendbcli connect <url>" to add a new connection.'));
       process.exit(1);
     }
     host = existing.host;
