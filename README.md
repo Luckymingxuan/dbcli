@@ -1,20 +1,20 @@
-# dbcli
+# opendbcli
 
 A database CLI built for AI agents — not just humans.
 
 You just provide your database connection, and the AI decides how to store, structure, and query data autonomously.
 
-## Why dbcli?
+## Why opendbcli?
 
 Tools like `psql` are built for humans managing databases.\
-dbcli is built for AI that needs to **own its data layer**.
+opendbcli is built for AI that needs to **own its data layer**.
 
 - AI decides how to structure data
 - AI decides what to store
 - AI decides how to query
 
 No abstractions. Just direct database control.\
-dbcli gives AI **full ownership of its data layer**, not just read/write access.
+opendbcli gives AI **full ownership of its data layer**, not just read/write access.
 
 ## Database Support
 
@@ -27,7 +27,7 @@ This is a deliberate choice: focus on one solid foundation for AI-driven data sy
 ### Install
 
 ```bash
-npm install -g @luckymingxuan/dbcli
+npm install -g opendbcli
 ```
 
 ---
@@ -40,18 +40,18 @@ Humans don't need to see what is shown to AI.
 
 
 ```bash
-dbcli connect my-db
-dbcli tables
-dbcli describe users
-dbcli query "SELECT * FROM users...."
+opendbcli connect my-db
+opendbcli tables
+opendbcli describe users
+opendbcli query "SELECT * FROM users...."
 ```
 
 ### Example AI-driven Workflow
 
 ```bash
-dbcli query "CREATE TABLE notes (id SERIAL PRIMARY KEY, content TEXT)"
-dbcli query "INSERT INTO notes (content) VALUES ('hello world')"
-dbcli query "SELECT * FROM notes"
+opendbcli query "CREATE TABLE notes (id SERIAL PRIMARY KEY, content TEXT)"
+opendbcli query "INSERT INTO notes (content) VALUES ('hello world')"
+opendbcli query "SELECT * FROM notes"
 ```
 
 ---
@@ -73,7 +73,7 @@ Example configuration:
       "url": "postgresql://user:pass@host:5432/db",
       "username": "user",
       "password": "pass",
-      "enabled": true
+      "connected": true
     }
   }
 }
