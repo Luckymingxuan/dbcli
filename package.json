@@ -1,5 +1,5 @@
 {
-  "name": "opendbcli",
+  "name": "@luckymingxuan/opendbcli",
   "version": "0.1.4",
   "description": "Database CLI tool",
   "type": "module",
