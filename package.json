@@ -1,11 +1,11 @@
 {
-  "name": "@luckymingxuan/dbcli",
+  "name": "opendbcli",
   "version": "0.1.4",
   "description": "Database CLI tool",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "dbcli": "dist/index.js"
+    "opendbcli": "dist/index.js"
   },
   "files": [
     "dist",
