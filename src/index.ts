@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { connect, disconnect, logout, showConnections as statusConnections, deleteConnection } from './commands/connect.js';
+import { connect, disconnect, showConnections as statusConnections } from './commands/connect.js';
 import { listTables, describeTable } from './commands/tables.js';
 import { executeQuery } from './commands/query.js';
 
@@ -14,13 +14,10 @@ program
 
 program
   .command('connect')
-  .description('Connect to a database (-u <user> -p <pass> for credentials, -c to use current)')
-  .argument('<db-name|url>', 'Connection name (for existing) or full URL (for new connection)')
-  .option('-u, --username <username>', 'Username for authentication')
-  .option('-p, --password <password>', 'Password for authentication')
-  .option('-c, --current', 'Use credentials from currently connected database')
-  .action(async (nameUrl: string, options) => {
-    await connect(nameUrl, options);
+  .description('Connect to a database using a full URL with embedded username and password')
+  .argument('<url>', 'Full database URL, for example postgresql://postgres:password@localhost:5432/mydb')
+  .action(async (url: string) => {
+    await connect(url);
   });
 
 program
@@ -38,49 +35,36 @@ program
 
 program
   .command('disconnect')
-  .description('Disconnect from a database (keeps credentials)')
+  .description('Remove a saved database connection')
   .argument('<db-name>', 'Connection name to disconnect')
   .action(async (name: string) => {
     await disconnect(name);
   });
 
 program
-  .command('logout')
-  .description('Logout from a connection (clears credentials)')
-  .argument('<db-name>', 'Connection name to logout')
-  .action(async (name: string) => {
-    await logout(name);
-  });
-
-program
-  .command('delete')
-  .description('Delete a saved connection completely')
-  .argument('<db-name>', 'Connection name to delete')
-  .action(async (name: string) => {
-    await deleteConnection(name);
-  });
-
-program
   .command('tables')
-  .description('List all tables in the connected database')
-  .action(async () => {
-    await listTables();
+  .description('List all tables in the specified database')
+  .argument('<db-name>', 'Connection name to query')
+  .action(async (name: string) => {
+    await listTables(name);
   });
 
 program
   .command('describe')
   .description('Show the structure of a table')
+  .argument('<db-name>', 'Connection name to query')
   .argument('<table>', 'Table name to describe')
-  .action(async (table: string) => {
-    await describeTable(table);
+  .action(async (name: string, table: string) => {
+    await describeTable(name, table);
   });
 
 program
   .command('query')
   .description('Execute a SQL query')
+  .argument('<db-name>', 'Connection name to query')
   .argument('<sql>', 'SQL query to execute (use quotes for complex queries)')
-  .action(async (sql: string) => {
-    await executeQuery(sql);
+  .action(async (name: string, sql: string) => {
+    await executeQuery(name, sql);
   });
 
 program.parse();

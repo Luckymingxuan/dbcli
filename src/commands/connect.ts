@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import inquirer from 'inquirer';
 import { PostgresDriver } from '../drivers/postgres.js';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -13,7 +12,6 @@ interface ConnectionInfo {
   username: string;
   password: string;
   lastConnected: string;
-  connected: boolean;
 }
 
 const CONFIG_DIR = path.join(os.homedir(), '.opendbcli');
@@ -42,45 +40,17 @@ export function getConnections(): Map<string, ConnectionInfo> {
   return connections;
 }
 
-export async function getActiveConnection(): Promise<ConnectionInfo | null> {
-  await loadConnections();
-  for (const conn of connections.values()) {
-    if (conn.connected) {
-      return conn;
-    }
-  }
-  return null;
-}
-
 export async function getConnectionByName(name: string): Promise<ConnectionInfo | null> {
   await loadConnections();
   return connections.get(name) || null;
-}
-
-async function promptCredentials(): Promise<{ username: string; password: string }> {
-  const answers = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'username',
-      message: 'Username:',
-      default: 'postgres',
-    },
-    {
-      type: 'password',
-      name: 'password',
-      message: 'Password:',
-      mask: '*',
-    },
-  ]);
-  return answers;
 }
 
 function isUrl(str: string): boolean {
   return str.includes('://');
 }
 
-function buildUrl(info: ConnectionInfo, username: string, password: string): string {
-  return `postgresql://${username}:${password}@${info.host}:${info.port}/${info.database}`;
+function hasCredentials(url: URL): boolean {
+  return url.username.trim().length > 0 && url.password.trim().length > 0;
 }
 
 export async function showConnections(): Promise<void> {
@@ -92,138 +62,69 @@ export async function showConnections(): Promise<void> {
     return;
   }
 
-  const activeConnection = Array.from(connections.values()).find((conn) => conn.connected);
-  if (activeConnection) {
-    console.log(chalk.green(`Current connected database: "${activeConnection.database}" (user: ${activeConnection.username})`));
-  } else {
-    console.log(chalk.yellow('No database is currently connected.'));
-  }
-
   console.log(chalk.cyan('Saved connections:'));
   const rows = Array.from(connections.entries()).map(([name, info]) => ({
+    name,
     username: info.username || '-',
     database: info.database,
     host: info.host,
     port: info.port,
-    connected: info.connected ? 'connected' : 'disconnected',
-    logged: info.username && info.password ? 'logged in' : 'logged out',
     lastConnected: info.lastConnected,
   }));
   console.table(rows);
 }
 
-export async function deleteConnection(name: string): Promise<void> {
+export async function connect(nameUrl: string): Promise<void> {
   await loadConnections();
 
-  if (!connections.has(name)) {
-    console.error(chalk.red(`Connection "${name}" not found.`));
+  if (!isUrl(nameUrl)) {
+    console.error(chalk.red('Connect only accepts a full database URL.'));
+    console.log(chalk.cyan('Use a URL like: postgresql://postgres:password@localhost:5432/mydb'));
+    console.log(chalk.yellow('You may have forgotten to include the username and password in the URL.'));
     process.exit(1);
   }
 
-  connections.delete(name);
-  await saveConnections();
-  console.log(chalk.yellow(`Connection "${name}" deleted.`));
-}
-
-export async function connect(nameUrl: string, options?: { username?: string; password?: string; current?: boolean }): Promise<void> {
-  await loadConnections();
-
-  let database: string;
-  let host: string;
-  let port: number;
-  let existing: ConnectionInfo | null = null;
-  let urlUsername = '';
-  let urlPassword = '';
-
-  if (isUrl(nameUrl)) {
-    const url = new URL(nameUrl);
-    database = url.pathname.slice(1) || 'postgres';
-    host = url.hostname;
-    port = parseInt(url.port) || 5432;
-    urlUsername = url.username;
-    urlPassword = url.password;
-    existing = connections.get(database) || null;
-  } else {
-    database = nameUrl;
-    existing = connections.get(database) || null;
-    if (!existing) {
-      console.error(chalk.red(`Connection "${database}" not found.`));
-      console.log(chalk.cyan('Use "opendbcli connect <url>" to add a new connection.'));
-      process.exit(1);
-    }
-    host = existing.host;
-    port = existing.port;
+  const url = new URL(nameUrl);
+  if (!hasCredentials(url)) {
+    console.error(chalk.red('Connection failed: missing username or password in URL.'));
+    console.log(chalk.cyan('Use a URL like: postgresql://postgres:password@localhost:5432/mydb'));
+    console.log(chalk.yellow('You may have forgotten to include the username and password in the URL.'));
+    process.exit(1);
   }
 
-  let credentials: { username: string; password: string };
-
-  if (options?.current) {
-    const activeConn = Array.from(connections.values()).find((conn) => conn.connected);
-    if (!activeConn) {
-      console.error(chalk.red('No currently connected database found.'));
-      process.exit(1);
-    }
-    credentials = { username: activeConn.username, password: activeConn.password };
-  } else if (options?.username && options?.password) {
-    credentials = { username: options.username, password: options.password };
-  } else if (urlUsername || urlPassword) {
-    credentials = { username: urlUsername, password: urlPassword };
-  } else if (existing && existing.username && existing.password) {
-    const useExisting = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'value',
-        message: `You have an existing account "${existing.username}". Enter "y" to use it or anything else to re-login:`,
-        default: 'y',
-      },
-    ]);
-
-    if (useExisting.value.toLowerCase() === 'y') {
-      credentials = { username: existing.username, password: existing.password };
-    } else {
-      credentials = await promptCredentials();
-    }
-  } else {
-    credentials = await promptCredentials();
-  }
-
-  let finalUrl: string;
-  if (existing) {
-    finalUrl = buildUrl(existing, credentials.username, credentials.password);
-  } else {
-    finalUrl = `postgresql://${credentials.username}:${credentials.password}@${host}:${port}/${database}`;
-  }
+  const database = url.pathname.slice(1) || 'postgres';
+  const host = url.hostname;
+  const port = parseInt(url.port, 10) || 5432;
+  const username = url.username;
+  const password = url.password;
 
   const driver = new PostgresDriver();
 
   try {
     console.log(chalk.cyan(`Connecting to db("${database}")...`));
-    await driver.connect(finalUrl);
-
-    for (const conn of connections.values()) {
-      conn.connected = false;
-    }
+    await driver.connect(nameUrl);
 
     const connectionInfo: ConnectionInfo = {
       url: `postgresql://${host}:${port}/${database}`,
       database,
       host,
       port,
-      username: credentials.username,
-      password: credentials.password,
+      username,
+      password,
       lastConnected: new Date().toISOString(),
-      connected: true,
     };
 
     connections.set(database, connectionInfo);
     await saveConnections();
 
-    console.log(chalk.green(`Connected to db("${database}") as user("${credentials.username}") successfully!`));
+    console.log(chalk.green(`Connected to db("${database}") as user("${username}") successfully!`));
     process.exit(0);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(chalk.red(`Connection failed: ${message}`));
     process.exit(1);
+  } finally {
+    await driver.disconnect();
   }
 }
 
@@ -235,26 +136,8 @@ export async function disconnect(name: string): Promise<void> {
     process.exit(1);
   }
 
-  const conn = connections.get(name)!;
-  conn.connected = false;
+  connections.delete(name);
   await saveConnections();
 
-  console.log(chalk.yellow(`Disconnected from "${name}".`));
-}
-
-export async function logout(name: string): Promise<void> {
-  await loadConnections();
-
-  if (!connections.has(name)) {
-    console.error(chalk.red(`Connection "${name}" not found.`));
-    process.exit(1);
-  }
-
-  const conn = connections.get(name)!;
-  conn.connected = false;
-  conn.username = '';
-  conn.password = '';
-  await saveConnections();
-
-  console.log(chalk.yellow(`Logged out from "${name}". Username and password cleared.`));
+  console.log(chalk.yellow(`Disconnected from "${name}" and removed it from saved connections.`));
 }
