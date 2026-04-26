@@ -1,26 +1,25 @@
 # opendbcli
 
-A database CLI built for AI agents — not just humans.
+A database CLI that truly opens your database to agents.
 
-You just provide your database connection, and the AI decides how to store, structure, and query data autonomously.
+Give an agent a real database connection, and it can inspect schema, understand tables, and query the data layer directly.
 
 ## Why opendbcli?
 
 Tools like `psql` are built for humans managing databases.\
-opendbcli is built for AI that needs to **own its data layer**.
+opendbcli is built for agents that need to **understand and use a database as part of their workflow**.
 
-- AI decides how to structure data
-- AI decides what to store
-- AI decides how to query
+- Agents can inspect tables and schema directly
+- Agents can query the database without human-oriented wrappers
+- Agents get closer to the real data layer instead of an abstracted API
 
-No abstractions. Just direct database control.\
-opendbcli gives AI **full ownership of its data layer**, not just read/write access.
+The goal is simple: help agents understand the database, and make the database truly open to them.
 
 ## Database Support
 
 Currently supports **PostgreSQL only**.
 
-This is a deliberate choice: focus on one solid foundation for AI-driven data systems.
+This is a deliberate choice: focus on one solid foundation for agent-native database workflows.
 
 ## Quick Start
 
@@ -34,24 +33,27 @@ npm install -g @luckymingxuan/opendbcli
 
 ### Commands
 
-Humans don't need to see what is shown to AI.
+The CLI is designed for agent-readable database access.
 
-<img width="611" height="327" alt="Image" src="https://github.com/user-attachments/assets/0f9c3740-07c9-4165-ba11-3ebf547544f1" />
+<img width="611" height="327" alt="Image" src="https://github.com/user-attachments/assets/7e809478-0366-4bb4-9ff5-6821ae989d63" />
 
 
 ```bash
-opendbcli connect my-db
-opendbcli tables
-opendbcli describe users
-opendbcli query "SELECT * FROM users...."
+opendbcli connect "postgresql://postgres:password@localhost:5432/mydb"
+opendbcli --status
+opendbcli tables mydb
+opendbcli describe mydb users
+opendbcli query mydb "SELECT * FROM users"
 ```
 
 ### Example AI-driven Workflow
 
 ```bash
-opendbcli query "CREATE TABLE notes (id SERIAL PRIMARY KEY, content TEXT)"
-opendbcli query "INSERT INTO notes (content) VALUES ('hello world')"
-opendbcli query "SELECT * FROM notes"
+opendbcli connect "postgresql://postgres:password@localhost:5432/notesdb"
+opendbcli describe notesdb notes
+opendbcli query notesdb "CREATE TABLE notes (id SERIAL PRIMARY KEY, content TEXT)"
+opendbcli query notesdb "INSERT INTO notes (content) VALUES ('hello world')"
+opendbcli query notesdb "SELECT * FROM notes"
 ```
 
 ---
@@ -68,13 +70,14 @@ Example configuration:
 
 ```bash
 {
-  "connections": {
-    "my-db": {
-      "url": "postgresql://user:pass@host:5432/db",
-      "username": "user",
-      "password": "pass",
-      "connected": true
-    }
+  "mydb": {
+    "url": "postgresql://localhost:5432/mydb",
+    "database": "mydb",
+    "host": "localhost",
+    "port": 5432,
+    "username": "postgres",
+    "password": "password",
+    "lastConnected": "2026-04-26T09:00:00.000Z"
   }
 }
 ```
