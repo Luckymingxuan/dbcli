@@ -62,16 +62,25 @@ export async function showConnections(): Promise<void> {
     return;
   }
 
-  console.log(chalk.cyan('Saved connections:'));
-  const rows = Array.from(connections.entries()).map(([name, info]) => ({
-    name,
-    username: info.username || '-',
-    database: info.database,
-    host: info.host,
-    port: info.port,
-    lastConnected: info.lastConnected,
-  }));
-  console.table(rows);
+  const entries = Array.from(connections.entries()).sort((a, b) => {
+    return new Date(b[1].lastConnected).getTime() - new Date(a[1].lastConnected).getTime();
+  });
+
+  const payload = {
+    saved_databases: entries.length,
+    databases: entries.map(([name, info]) => ({
+      name,
+      database: info.database,
+      account: info.username || null,
+      host: info.host,
+      port: info.port,
+      last_connected: info.lastConnected,
+    })),
+  };
+
+  console.log(chalk.cyan('Connection Status'));
+  console.log(chalk.gray('================='));
+  console.log(JSON.stringify(payload, null, 2));
 }
 
 export async function connect(nameUrl: string): Promise<void> {

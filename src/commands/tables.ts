@@ -35,8 +35,18 @@ export async function listTables(connName: string): Promise<void> {
     if (tables.length === 0) {
       console.log(chalk.yellow(`No tables found in database "${databaseName}".`));
     } else {
-      console.log(chalk.cyan(`Tables in database "${databaseName}":`));
-      console.table(tables);
+      const payload = {
+        database: databaseName,
+        table_count: tables.length,
+        tables: tables.map((table) => ({
+          schema: table.schema,
+          name: table.name,
+        })),
+      };
+
+      console.log(chalk.cyan('Database Tables'));
+      console.log(chalk.gray('=============='));
+      console.log(JSON.stringify(payload, null, 2));
     }
   } finally {
     await driver.disconnect();
@@ -60,18 +70,22 @@ export async function describeTable(connName: string, tableName: string): Promis
     if (columns.length === 0) {
       console.log(chalk.yellow(`Table "${tableName}" not found in database "${databaseName}".`));
     } else {
-      console.log(chalk.cyan(`Structure of table "${tableName}" in database "${databaseName}":`));
-      console.table(columns);
+      const payload = {
+        database: databaseName,
+        table: `public.${tableName}`,
+        column_count: columns.length,
+        columns: columns.map((col) => ({
+          name: col.name,
+          type: col.dataType,
+          nullable: col.isNullable,
+          default: col.defaultValue,
+          description: col.description,
+        })),
+      };
 
-      const hasDescriptions = columns.some(col => col.description);
-      if (hasDescriptions) {
-        console.log(chalk.gray('\nColumn descriptions:'));
-        columns.forEach(col => {
-          if (col.description) {
-            console.log(`  ${chalk.white(col.name)}: ${chalk.gray(col.description)}`);
-          }
-        });
-      }
+      console.log(chalk.cyan('Table Description'));
+      console.log(chalk.gray('================='));
+      console.log(JSON.stringify(payload, null, 2));
     }
   } finally {
     await driver.disconnect();
