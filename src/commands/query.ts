@@ -23,7 +23,7 @@ export async function executeQuery(connName: string, sql: string): Promise<void>
 
   if (!result) {
     console.log(chalk.red(`Connection "${connName}" not found.`));
-    console.log(chalk.cyan('Please use "opendbcli connect <url>" to add the database first.'));
+    console.log(chalk.cyan('Please use "dbcli connect <url>" to add the database first.'));
     process.exit(1);
   }
 
