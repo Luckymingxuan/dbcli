@@ -23,7 +23,7 @@ export async function listTables(connName: string): Promise<void> {
 
   if (!result) {
     console.log(chalk.red(`Connection "${connName}" not found.`));
-    console.log(chalk.cyan('Please use "opendbcli connect <url>" to add the database first.'));
+    console.log(chalk.cyan('Please use "dbcli connect <url>" to add the database first.'));
     process.exit(1);
   }
 
@@ -58,7 +58,7 @@ export async function describeTable(connName: string, tableName: string): Promis
 
   if (!result) {
     console.log(chalk.red(`Connection "${connName}" not found.`));
-    console.log(chalk.cyan('Please use "opendbcli connect <url>" to add the database first.'));
+    console.log(chalk.cyan('Please use "dbcli connect <url>" to add the database first.'));
     process.exit(1);
   }
 

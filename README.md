@@ -1,13 +1,13 @@
-# opendbcli
+# dbcli
 
 A database CLI that truly opens your database to agents.
 
 Give an agent a real database connection, and it can inspect schema, understand tables, and query the data layer directly.
 
-## Why opendbcli?
+## Why dbcli?
 
 Tools like `psql` are built for humans managing databases.\
-opendbcli is built for agents that need to **understand and use a database as part of their workflow**.
+dbcli is built for agents that need to **understand and use a database as part of their workflow**.
 
 - Agents can inspect tables and schema directly
 - Agents can query the database without human-oriented wrappers
@@ -26,7 +26,7 @@ This is a deliberate choice: focus on one solid foundation for agent-native data
 ### Install
 
 ```bash
-npm install -g @luckymingxuan/opendbcli
+npm install -g @luckymingxuan/dbcli
 ```
 
 ---
@@ -39,21 +39,21 @@ The CLI is designed for agent-readable database access.
 
 
 ```bash
-opendbcli connect "postgresql://postgres:password@localhost:5432/mydb"
-opendbcli --status
-opendbcli tables mydb
-opendbcli describe mydb users
-opendbcli query mydb "SELECT * FROM users"
+dbcli connect "postgresql://postgres:password@localhost:5432/mydb"
+dbcli --status
+dbcli tables mydb
+dbcli describe mydb users
+dbcli query mydb "SELECT * FROM users"
 ```
 
 ### Example AI-driven Workflow
 
 ```bash
-opendbcli connect "postgresql://postgres:password@localhost:5432/notesdb"
-opendbcli describe notesdb notes
-opendbcli query notesdb "CREATE TABLE notes (id SERIAL PRIMARY KEY, content TEXT)"
-opendbcli query notesdb "INSERT INTO notes (content) VALUES ('hello world')"
-opendbcli query notesdb "SELECT * FROM notes"
+dbcli connect "postgresql://postgres:password@localhost:5432/notesdb"
+dbcli describe notesdb notes
+dbcli query notesdb "CREATE TABLE notes (id SERIAL PRIMARY KEY, content TEXT)"
+dbcli query notesdb "INSERT INTO notes (content) VALUES ('hello world')"
+dbcli query notesdb "SELECT * FROM notes"
 ```
 
 ---
@@ -63,7 +63,7 @@ opendbcli query notesdb "SELECT * FROM notes"
 The connections are stored in:
 
 ```bash
-~/.opendbcli/connections.json
+~/.dbcli/connections.json
 ```
 
 Example configuration:
