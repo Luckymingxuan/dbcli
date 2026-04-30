@@ -92,7 +92,13 @@ export class PostgresDriver implements DatabaseDriver {
         AND NOT a.attisdropped
       ORDER BY a.attnum
     `, [schema, table]);
-    return result.rows as unknown as ColumnInfo[];
+    return result.rows.map((row) => ({
+      name: String(row.name),
+      dataType: String(row.data_type),
+      isNullable: row.is_nullable === 'YES',
+      defaultValue: row.default_value ? String(row.default_value) : null,
+      description: row.description ? String(row.description) : null,
+    }));
   }
 
   async listRelatedTables(schema: string, table: string): Promise<RelatedTableInfo[]> {
