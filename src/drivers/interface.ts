@@ -32,6 +32,17 @@ export interface ColumnInfo {
   description: string | null;
 }
 
+export interface RelatedTableInfo {
+  sourceSchema: string;
+  sourceTable: string;
+  sourceColumn: string;
+  targetSchema: string;
+  targetTable: string;
+  targetColumn: string;
+  direction: 'outgoing' | 'incoming';
+  constraintName: string;
+}
+
 export interface DatabaseDriver {
   connect(url: string): Promise<void>;
   disconnect(): Promise<void>;
@@ -39,4 +50,5 @@ export interface DatabaseDriver {
   query(sql: string): Promise<QueryResult>;
   listTables(): Promise<TableInfo[]>;
   describeTable(schema: string, table: string): Promise<ColumnInfo[]>;
+  listRelatedTables(schema: string, table: string): Promise<RelatedTableInfo[]>;
 }
