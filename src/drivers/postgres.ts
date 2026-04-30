@@ -9,7 +9,7 @@
  * Copyright (c) 2026 by ${git_name_email}, All Rights Reserved. 
  */
 import pg from 'pg';
-import type { DatabaseDriver, QueryResult, TableInfo, ColumnInfo } from './interface.js';
+import type { DatabaseDriver, QueryResult, TableInfo, ColumnInfo, RelatedTableInfo } from './interface.js';
 
 export class PostgresDriver implements DatabaseDriver {
   private client: pg.PoolClient | null = null;
@@ -93,5 +93,70 @@ export class PostgresDriver implements DatabaseDriver {
       ORDER BY a.attnum
     `, [schema, table]);
     return result.rows as unknown as ColumnInfo[];
+  }
+
+  async listRelatedTables(schema: string, table: string): Promise<RelatedTableInfo[]> {
+    const result = await this.query(`
+      WITH fk_pairs AS (
+        SELECT
+          con.conname AS constraint_name,
+          src_ns.nspname AS source_schema,
+          src.relname AS source_table,
+          src_attr.attname AS source_column,
+          tgt_ns.nspname AS target_schema,
+          tgt.relname AS target_table,
+          tgt_attr.attname AS target_column
+        FROM pg_constraint con
+        JOIN pg_class src ON src.oid = con.conrelid
+        JOIN pg_namespace src_ns ON src_ns.oid = src.relnamespace
+        JOIN pg_class tgt ON tgt.oid = con.confrelid
+        JOIN pg_namespace tgt_ns ON tgt_ns.oid = tgt.relnamespace
+        JOIN LATERAL unnest(con.conkey) WITH ORDINALITY AS src_col(attnum, ord) ON true
+        JOIN LATERAL unnest(con.confkey) WITH ORDINALITY AS tgt_col(attnum, ord) ON src_col.ord = tgt_col.ord
+        JOIN pg_attribute src_attr ON src_attr.attrelid = src.oid AND src_attr.attnum = src_col.attnum
+        JOIN pg_attribute tgt_attr ON tgt_attr.attrelid = tgt.oid AND tgt_attr.attnum = tgt_col.attnum
+        WHERE con.contype = 'f'
+      )
+      SELECT
+        source_schema,
+        source_table,
+        source_column,
+        target_schema,
+        target_table,
+        target_column,
+        'outgoing' AS direction,
+        constraint_name
+      FROM fk_pairs
+      WHERE source_schema = $1
+        AND source_table = $2
+
+      UNION ALL
+
+      SELECT
+        source_schema,
+        source_table,
+        source_column,
+        target_schema,
+        target_table,
+        target_column,
+        'incoming' AS direction,
+        constraint_name
+      FROM fk_pairs
+      WHERE target_schema = $1
+        AND target_table = $2
+
+      ORDER BY direction, source_schema, source_table, constraint_name, source_column
+    `, [schema, table]);
+
+    return result.rows.map((row) => ({
+      sourceSchema: String(row.source_schema),
+      sourceTable: String(row.source_table),
+      sourceColumn: String(row.source_column),
+      targetSchema: String(row.target_schema),
+      targetTable: String(row.target_table),
+      targetColumn: String(row.target_column),
+      direction: row.direction === 'incoming' ? 'incoming' : 'outgoing',
+      constraintName: String(row.constraint_name),
+    }));
   }
 }
