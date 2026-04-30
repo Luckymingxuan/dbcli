@@ -111,8 +111,16 @@ export async function showTableSchema(connName: string, tableName: string): Prom
       return;
     }
 
+    const foreignKeys = await driver.getTableForeignKeys('public', tableName);
+    const foreignKeyMap = new Map(foreignKeys.map((fk) => [fk.columnName, fk]));
+
     const columnDefinitions = columns.map((column) => {
       const parts = [`${column.name} ${column.dataType}`];
+
+      const fk = foreignKeyMap.get(column.name);
+      if (fk) {
+        parts.push(`REFERENCES ${fk.foreignSchema}.${fk.foreignTable}(${fk.foreignColumn})`);
+      }
 
       if (column.isNullable === false || column.isNullable === 'NO') {
         parts.push('NOT NULL');
