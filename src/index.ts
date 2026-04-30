@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { connect, disconnect, showConnections as statusConnections } from './commands/connect.js';
-import { listTables, describeTable, showRelatedTables } from './commands/tables.js';
+import { listTables, describeTable, showRelatedTables, showTableSchema } from './commands/tables.js';
 import { executeQuery } from './commands/query.js';
 
 const program = new Command();
@@ -56,6 +56,15 @@ program
   .argument('<table>', 'Table name to describe')
   .action(async (name: string, table: string) => {
     await describeTable(name, table);
+  });
+
+program
+  .command('schema')
+  .description('Show a table schema in a compact DDL-style format')
+  .argument('<db-name>', 'Connection name to query')
+  .argument('<table>', 'Table name to inspect')
+  .action(async (name: string, table: string) => {
+    await showTableSchema(name, table);
   });
 
 program

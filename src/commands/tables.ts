@@ -92,6 +92,50 @@ export async function describeTable(connName: string, tableName: string): Promis
   }
 }
 
+export async function showTableSchema(connName: string, tableName: string): Promise<void> {
+  const result = await getDriverForConnection(connName);
+
+  if (!result) {
+    console.log(chalk.red(`Connection "${connName}" not found.`));
+    console.log(chalk.cyan('Please use "dbcli connect <url>" to add the database first.'));
+    process.exit(1);
+  }
+
+  const { driver, connName: databaseName } = result;
+
+  try {
+    const columns = await driver.describeTable('public', tableName);
+
+    if (columns.length === 0) {
+      console.log(chalk.yellow(`Table "${tableName}" not found in database "${databaseName}".`));
+      return;
+    }
+
+    const columnDefinitions = columns.map((column) => {
+      const parts = [`${column.name} ${column.dataType}`];
+
+      if (column.isNullable === false || column.isNullable === 'NO') {
+        parts.push('NOT NULL');
+      }
+
+      if (column.defaultValue) {
+        parts.push(`DEFAULT ${column.defaultValue}`);
+      }
+
+      return `  ${parts.join(' ')}`;
+    });
+
+    console.log(chalk.cyan('Table Schema'));
+    console.log(chalk.gray('============'));
+    console.log(`-- database: ${databaseName}`);
+    console.log(`CREATE TABLE public.${tableName} (`);
+    console.log(`${columnDefinitions.join(',\n')}`);
+    console.log(');');
+  } finally {
+    await driver.disconnect();
+  }
+}
+
 export async function showRelatedTables(connName: string, tableName: string): Promise<void> {
   const result = await getDriverForConnection(connName);
 

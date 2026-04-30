@@ -27,7 +27,7 @@ export interface TableInfo {
 export interface ColumnInfo {
   name: string;
   dataType: string;
-  isNullable: boolean;
+  isNullable: boolean | 'YES' | 'NO';
   defaultValue: string | null;
   description: string | null;
 }
