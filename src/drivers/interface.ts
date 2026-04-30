@@ -32,6 +32,14 @@ export interface ColumnInfo {
   description: string | null;
 }
 
+export interface ForeignKeyInfo {
+  columnName: string;
+  foreignKeyName: string;
+  foreignSchema: string;
+  foreignTable: string;
+  foreignColumn: string;
+}
+
 export interface RelatedTableInfo {
   sourceSchema: string;
   sourceTable: string;
@@ -50,5 +58,6 @@ export interface DatabaseDriver {
   query(sql: string): Promise<QueryResult>;
   listTables(): Promise<TableInfo[]>;
   describeTable(schema: string, table: string): Promise<ColumnInfo[]>;
+  getTableForeignKeys(schema: string, table: string): Promise<ForeignKeyInfo[]>;
   listRelatedTables(schema: string, table: string): Promise<RelatedTableInfo[]>;
 }

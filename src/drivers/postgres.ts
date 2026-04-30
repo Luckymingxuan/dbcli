@@ -9,7 +9,7 @@
  * Copyright (c) 2026 by ${git_name_email}, All Rights Reserved. 
  */
 import pg from 'pg';
-import type { DatabaseDriver, QueryResult, TableInfo, ColumnInfo, RelatedTableInfo } from './interface.js';
+import type { DatabaseDriver, QueryResult, TableInfo, ColumnInfo, RelatedTableInfo, ForeignKeyInfo } from './interface.js';
 
 export class PostgresDriver implements DatabaseDriver {
   private client: pg.PoolClient | null = null;
@@ -98,6 +98,38 @@ export class PostgresDriver implements DatabaseDriver {
       isNullable: row.is_nullable === 'YES',
       defaultValue: row.default_value ? String(row.default_value) : null,
       description: row.description ? String(row.description) : null,
+    }));
+  }
+
+  async getTableForeignKeys(schema: string, table: string): Promise<ForeignKeyInfo[]> {
+    const result = await this.query(`
+      SELECT
+        con.conname AS constraint_name,
+        src_attr.attname AS column_name,
+        tgt_ns.nspname AS foreign_schema,
+        tgt.relname AS foreign_table,
+        tgt_attr.attname AS foreign_column
+      FROM pg_constraint con
+      JOIN pg_class src ON src.oid = con.conrelid
+      JOIN pg_namespace src_ns ON src_ns.oid = src.relnamespace
+      JOIN pg_class tgt ON tgt.oid = con.confrelid
+      JOIN pg_namespace tgt_ns ON tgt_ns.oid = tgt.relnamespace
+      JOIN LATERAL unnest(con.conkey) WITH ORDINALITY AS src_col(attnum, ord) ON true
+      JOIN LATERAL unnest(con.confkey) WITH ORDINALITY AS tgt_col(attnum, ord) ON src_col.ord = tgt_col.ord
+      JOIN pg_attribute src_attr ON src_attr.attrelid = src.oid AND src_attr.attnum = src_col.attnum
+      JOIN pg_attribute tgt_attr ON tgt_attr.attrelid = tgt.oid AND tgt_attr.attnum = tgt_col.attnum
+      WHERE con.contype = 'f'
+        AND src_ns.nspname = $1
+        AND src.relname = $2
+      ORDER BY con.conname, src_col.ord
+    `, [schema, table]);
+
+    return result.rows.map((row) => ({
+      columnName: String(row.column_name),
+      foreignKeyName: String(row.constraint_name),
+      foreignSchema: String(row.foreign_schema),
+      foreignTable: String(row.foreign_table),
+      foreignColumn: String(row.foreign_column),
     }));
   }
 
