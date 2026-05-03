@@ -35,7 +35,7 @@ npm install -g @luckymingxuan/dbcli
 
 The CLI is designed for agent-readable database access.
 
-<img width="611" height="327" alt="Image" src="https://github.com/user-attachments/assets/7e809478-0366-4bb4-9ff5-6821ae989d63" />
+<img width="679" height="339" alt="Image" src="https://github.com/user-attachments/assets/1ab2451f-f8f2-4558-85ce-d09726743a38" />
 
 
 ```bash
@@ -43,14 +43,32 @@ dbcli connect "postgresql://postgres:password@localhost:5432/mydb"
 dbcli --status
 dbcli tables mydb
 dbcli describe mydb users
+dbcli schema mydb users
+dbcli related mydb users
 dbcli query mydb "SELECT * FROM users"
+dbcli disconnect mydb
+```
+
+### Command Reference
+
+```bash
+dbcli connect "<postgresql-url>"      # Save and verify a database connection
+dbcli --status                        # Show all saved connections
+dbcli tables <db-name>                # List all tables in the database
+dbcli describe <db-name> <table>      # Detailed JSON table description
+dbcli schema <db-name> <table>        # Compact DDL-style schema output
+dbcli related <db-name> <table>       # Related tables split by outgoing/incoming direction
+dbcli query <db-name> "<sql>"         # Execute SQL on the selected connection
+dbcli disconnect <db-name>            # Remove a saved connection
 ```
 
 ### Example AI-driven Workflow
 
 ```bash
 dbcli connect "postgresql://postgres:password@localhost:5432/notesdb"
-dbcli describe notesdb notes
+dbcli tables notesdb
+dbcli schema notesdb notes
+dbcli related notesdb notes
 dbcli query notesdb "CREATE TABLE notes (id SERIAL PRIMARY KEY, content TEXT)"
 dbcli query notesdb "INSERT INTO notes (content) VALUES ('hello world')"
 dbcli query notesdb "SELECT * FROM notes"
