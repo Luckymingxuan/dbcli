@@ -165,19 +165,26 @@ export async function showRelatedTables(connName: string, tableName: string): Pr
 
     const relations = await driver.listRelatedTables('public', tableName);
 
-    const relatedTables = Array.from(new Set(
-      relations.map((relation) => {
-        const relatedSchema = relation.direction === 'outgoing' ? relation.targetSchema : relation.sourceSchema;
-        const relatedTable = relation.direction === 'outgoing' ? relation.targetTable : relation.sourceTable;
-        return `${relatedSchema}.${relatedTable}`;
-      }),
+    const outgoingRelatedTables = Array.from(new Set(
+      relations
+        .filter((relation) => relation.direction === 'outgoing')
+        .map((relation) => `${relation.targetSchema}.${relation.targetTable}`),
+    ));
+
+    const incomingRelatedTables = Array.from(new Set(
+      relations
+        .filter((relation) => relation.direction === 'incoming')
+        .map((relation) => `${relation.sourceSchema}.${relation.sourceTable}`),
     ));
 
     const payload = {
       database: databaseName,
       table: `public.${tableName}`,
-      related_table_count: relatedTables.length,
-      related_tables: relatedTables,
+      related_table_count: outgoingRelatedTables.length + incomingRelatedTables.length,
+      outgoing_count: outgoingRelatedTables.length,
+      incoming_count: incomingRelatedTables.length,
+      outgoing_related_tables: outgoingRelatedTables,
+      incoming_related_tables: incomingRelatedTables,
     };
 
     console.log(chalk.cyan('Related Tables'));
