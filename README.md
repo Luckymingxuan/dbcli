@@ -46,6 +46,7 @@ dbcli describe mydb users
 dbcli schema mydb users
 dbcli related mydb users
 dbcli query mydb "SELECT * FROM users"
+dbcli skill --output ./skill.md
 dbcli disconnect mydb
 ```
 
@@ -59,7 +60,18 @@ dbcli describe <db-name> <table>      # Detailed JSON table description
 dbcli schema <db-name> <table>        # Compact DDL-style schema output
 dbcli related <db-name> <table>       # Related tables split by outgoing/incoming direction
 dbcli query <db-name> "<sql>"         # Execute SQL on the selected connection
+dbcli skill --output <path>           # Write built-in skill markdown to a file
 dbcli disconnect <db-name>            # Remove a saved connection
+```
+
+### Skill Export
+
+```bash
+# Print skill markdown to stdout
+dbcli skill
+
+# Write skill markdown to a file
+dbcli skill --output ./skill.md
 ```
 
 ### Example AI-driven Workflow
