@@ -29,6 +29,18 @@ This is a deliberate choice: focus on one solid foundation for agent-native data
 npm install -g @luckymingxuan/dbcli
 ```
 
+To make agent workflows more reliable, export the built-in skill file:
+
+```bash
+dbcli skill --output ./skill.md
+```
+
+Then place it in your agent skill directory, for example:
+
+- Claude: `~/.claude/skills/dbcli/SKILL.md`
+- Gemini: `~/.gemini/skills/dbcli/SKILL.md`
+- Cursor: `.cursor/rules/dbcli.mdc`
+
 ---
 
 ### Commands
