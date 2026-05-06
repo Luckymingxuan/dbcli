@@ -1,6 +1,6 @@
 {
   "name": "@luckymingxuan/dbcli",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "description": "Database CLI tool",
   "type": "module",
   "main": "dist/index.js",
