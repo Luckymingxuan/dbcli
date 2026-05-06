@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { connect, disconnect, showConnections as statusConnections } from './commands/connect.js';
 import { listTables, describeTable, showRelatedTables, showTableSchema } from './commands/tables.js';
 import { executeQuery } from './commands/query.js';
+import { skill } from './commands/skill.js';
 
 const program = new Command();
 
@@ -83,6 +84,14 @@ program
   .argument('<sql>', 'SQL query to execute (use quotes for complex queries)')
   .action(async (name: string, sql: string) => {
     await executeQuery(name, sql);
+  });
+
+program
+  .command('skill')
+  .description('Print skill markdown or write it to a file')
+  .option('--output <path>', 'Write skill markdown to a file')
+  .action(async (options: { output?: string }) => {
+    await skill(options);
   });
 
 program.parse();
